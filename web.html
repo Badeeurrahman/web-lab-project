@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentalDrive | Premium Vehicle Management</title>
+    <style>
+        :root { 
+            --leather: #885133;    
+            --cream: #f4f0ec;      
+            --white: #ffffff;      
+            --burnt-red: #d62300;  
+            --beige: #f0e6d7;      
+            
+            --text-main: #333333;
+            --text-muted: #e0e0e0;
+        }
+
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--cream); color: var(--text-main); scroll-behavior: smooth; }
+
+        /* AUTHENTICATION OVERLAY */
+        #auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--leather); 
+            z-index: 5000; display: flex; align-items: center; justify-content: center;
+        }
+        .login-card {
+            background: var(--white); padding: 40px; border-radius: 15px; width: 350px; text-align: center; color: var(--text-main);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3); border-top: 5px solid var(--burnt-red);
+        }
+        .login-card input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 5px; border: 1px solid #ccc; background: var(--cream); color: #333; box-sizing: border-box; }
+        
+        /* HEADER */
+        header { background: var(--leather); color: var(--white); padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        header h2 { color: var(--beige); margin: 0; font-weight: bold; font-size: 24px; cursor: pointer; letter-spacing: 1px; }
+        nav a, .logout-btn { color: var(--text-muted); margin-left: 25px; text-decoration: none; font-size: 14px; font-weight: 500; transition: 0.3s; }
+        nav a:hover { color: var(--white); text-decoration: underline; }
+
+        /* HERO SECTION */
+        .hero { 
+            height: 60vh; 
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url("https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80") center/cover no-repeat;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 20px; color: var(--white);
+        }
+        .hero h1 { font-size: 3.5rem; margin: 0; font-weight: 700; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .hero p { font-size: 1.2rem; margin-top: 15px; opacity: 0.95; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+
+        .hidden { display: none !important; }
+        section { padding: 60px 10%; }
+
+        /* BIKES SECTION */
+        #bikes {
+            background: url("https://thumbs.dreamstime.com/b/hand-drawn-motorcycle-doodle-set-vector-illustration-chopper-motorbike-custom-bike-biker-stuff-accessories-parts-garage-164661874.jpg") center/cover fixed no-repeat;
+            background-color: var(--cream);
+            background-blend-mode: overlay;
+        }
+
+        h2.cat-title { text-align: center; margin-bottom: 40px; color: var(--leather); font-size: 28px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid var(--burnt-red); display: inline-block; padding-bottom: 10px; }
+        .cat-container { text-align: center; margin-bottom: 20px; }
+
+        /* CARDS */
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; margin-bottom: 50px; }
+        .card { background: var(--white); border-radius: 12px; overflow: hidden; transition: 0.4s; border: none; box-shadow: 0 5px 15px rgba(136, 81, 51, 0.1); }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(136, 81, 51, 0.2); }
+        .card img { width: 100%; height: 190px; object-fit: cover; border-bottom: 4px solid var(--beige); }
+        .card-content { padding: 20px; text-align: center; }
+        .card h3 { margin: 10px 0; font-size: 18px; color: var(--leather); font-weight: 700; }
+        .card p { color: var(--burnt-red); font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; }
+        
+        .btn { background: var(--burnt-red); color: var(--white); border: none; padding: 12px; cursor: pointer; border-radius: 6px; font-weight: bold; width: 100%; transition: 0.3s; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn:hover { background: #b01c00; box-shadow: 0 4px 10px rgba(214, 35, 0, 0.3); }
+
+        /* DASHBOARD */
+        .dashboard-container { 
+            background: var(--white); padding: 40px; border-radius: 12px; max-width: 1000px; margin: 0 auto; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid var(--beige);
+        }
+        
+        /* ADMIN PANEL - DARK THEME */
+        .admin-panel { 
+            background: #111;
+            padding: 40px; border-radius: 12px; max-width: 1200px; margin: 0 auto; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-left: 5px solid var(--burnt-red);
+            color: #ddd;
+        }
+        .admin-panel th { color: var(--burnt-red); text-align: left; padding: 15px; border-bottom: 1px solid #444; font-size:13px; text-transform:uppercase; letter-spacing:1px; }
+        .admin-panel td { padding: 15px; border-bottom: 1px solid #333; color: #fff; font-size:14px; }
+
+        .btn-csv { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-wipe { background: #b71c1c; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+
+        /* FOOTER */
+        footer { background: var(--leather); color: var(--white); padding: 80px 20px 40px; text-align: center; border-top: 1px solid #6d4129; }
+        .social-section { margin-bottom: 50px; }
+        .social-section h2 { font-size: 32px; font-weight: bold; margin-bottom: 30px; display: inline-block; vertical-align: middle; margin-right: 30px; color: var(--beige); }
+        .social-icons { display: inline-block; vertical-align: middle; }
+        .social-icons img { width: 28px; margin: 0 15px; filter: invert(1); opacity: 0.8; transition: 0.3s; cursor: pointer; }
+        .social-icons img:hover { opacity: 1; transform: translateY(-3px); }
+
+        .footer-policies { margin-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 40px; }
+        .footer-policies a { color: var(--beige); text-decoration: none; margin: 0 20px; font-size: 16px; opacity: 0.9; }
+        .footer-policies a:hover { color: var(--white); }
+        .copyright { color: var(--text-muted); font-size: 15px; margin-bottom: 30px; }
+        .footer-contact { color: rgba(255,255,255,0.7); font-size: 14px; max-width: 900px; margin: 0 auto; line-height: 1.8; }
+
+        /* --- BOOKING POPUP (RED/BLACK THEME) --- */
+        .popup { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:6000; backdrop-filter: blur(5px); }
+        .popup-content { 
+            background: #111; 
+            width: 450px; 
+            margin: 5% auto; 
+            padding: 35px; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 60px rgba(214, 35, 0, 0.2); 
+            text-align: left;
+            color: #ddd;
+            border: 1px solid #333;
+            position: relative;
+        }
+        
+        .popup-content h3 { color: #fff; margin-top: 0; font-size: 18px; margin-bottom: 5px; }
+        .form-label { display: block; font-size: 16px; color: #ddd; margin-bottom: 8px; font-weight: 500; }
+        
+        .city-select {
+            width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333; color: #ff5252; 
+            border-radius: 8px; font-size: 18px; font-weight: bold; margin-bottom: 25px; outline: none;
+        }
+        
+        .date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        
+        .date-input-group label { display: block; color: #888; font-size: 14px; margin-bottom: 5px; }
+        .date-input { 
+            width: 100%; padding: 10px; background: transparent; border: none; border-bottom: 1px solid #333; 
+            color: #ff5252; font-size: 16px; box-sizing: border-box; font-family: inherit;
+        }
+        .date-input:focus { outline: none; border-bottom: 1px solid #ff5252; }
+        
+        .duration-box {
+            background: #2a0e0e; color: #fff; padding: 15px; text-align: center; border-radius: 8px; 
+            margin-top: 20px; font-weight: bold; border: 1px solid #5a1010; font-size: 18px;
+        }
+
+        .confirm-btn {
+            background: #b71c1c; color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; 
+            font-weight: bold; cursor: pointer; margin-top: 25px; font-size: 18px; transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(183, 28, 28, 0.3);
+        }
+        .confirm-btn:hover { background: #d32f2f; transform: translateY(-2px); }
+        
+        .close-icon {
+            position: absolute; top: 20px; right: 20px; color: #555; cursor: pointer; font-size: 24px;
+        }
+        .close-icon:hover { color: #fff; }
+
+        /* Search Bar */
+        .search-bar { display: flex; gap: 10px; margin: 25px 0; }
+        .search-bar input { flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #ccc; }
+        .search-btn { background: var(--leather); color: white; padding: 0 25px; border: none; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div id="auth-overlay">
+    <div class="login-card">
+        <h2 style="color:var(--leather); margin-top:0;">RentalDrive Login</h2>
+        <p style="color:#666; font-size: 14px; margin-bottom: 20px;">Welcome back. Please identify yourself.</p>
+        <input type="text" id="loginInput" placeholder="Name or Admin Password...">
+        <button class="btn" onclick="handleLogin()">Enter Dashboard</button>
+    </div>
+</div>
+
+<div id="main-content" class="hidden">
+    <header>
+        <h2>RentalDrive</h2>
+        <nav>
+            <a href="#bikes">Bikes</a>
+            <a href="#scooters">Scooters</a>
+            <a href="#cars">Cars</a>
+            <a href="#customer-portal">My Bookings</a>
+            <span id="dev-nav-link" class="hidden"><a href="#admin-panel">Developer Panel</a></span>
+            <span class="logout-btn" onclick="location.reload()">Logout</span>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h1>Experience the Freedom of the Road</h1>
+        <p>Premium cars and bikes for your next adventure.</p>
+    </div>
+
+    <section id="bikes">
+        <div class="cat-container"><h2 class="cat-title">Bikes</h2></div>
+        <div class="cards">
+            <div class="card"><img src="https://imgd.aeplcdn.com/1056x594/n/ybfrphb_1881667.jpg?q=80"><div class="card-content"><h3>Yamaha MT-15</h3><p>₹900/day</p><button class="btn" onclick="openForm('Yamaha MT-15')">Book Now</button></div></div>
+            <div class="card"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0iEh1MVJnEgKz53IIJjoj5txk4lfZ0ScJ3g&s"><div class="card-content"><h3>Royal Enfield Classic</h3><p>₹800/day</p><button class="btn" onclick="openForm('Royal Enfield')">Book Now</button></div></div>
+            <div class="card"><img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/1/versions/bajaj-pulsar-n160-dual-channel-abs1725031145215.jpg?q=80"><div class="card-content"><h3>Bajaj Pulsar 150</h3><p>₹600/day</p><button class="btn" onclick="openForm('Pulsar 150')">Book Now</button></div></div>
+            <div class="card"><img src="https://imgd.aeplcdn.com/664x374/n/bw/models/colors/ktm-select-model-gp-edition-1670841965124.png?q=80"><div class="card-content"><h3>KTM RC 390</h3><p>₹1,200/day</p><button class="btn" onclick="openForm('KTM Duke')">Book Now</button></div></div>
+            <div class="card"><img src="https://imgd.aeplcdn.com/1056x594/n/ovv6seb_1777199.jpg?q=80"><div class="card-content"><h3>royal Enfield Interceptor 650</h3><p>₹1750/day</p><button class="btn" onclick="openForm('Honda Hornet')">Book Now</button></div></div>
+        </div>
+    </section>
+
+    <section id="scooters" style="background: var(--beige);">
+        <div class="cat-container"><h2 class="cat-title">Scooters</h2></div>
+        <div class="cards">
+            <div class="card"><img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/1/versions/--connected-obd-2b1737697110094.jpg?q=80"><div class="card-content"><h3>Honda Activa 6G</h3><p>₹400/day</p><button class="btn" onclick="openForm('Honda Activa')">Book Now</button></div></div>
+            <div class="card"><img src="https://imgd.aeplcdn.com/1056x594/n/oz7vseb_1777485.jpg?q=80"><div class="card-content"><h3>TVS Ntorq 125</h3><p>₹500/day</p><button class="btn" onclick="openForm('TVS Ntorq')">Book Now</button></div></div>
+            <div class="card"><img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/1/versions/--standard1741335549558.jpg?q=80"><div class="card-content"><h3>BMW C400 GT</h3><p>₹450/day</p><button class="btn" onclick="openForm('Suzuki Access')">Book Now</button></div></div>
+            <div class="card"><img src="https://imgd.aeplcdn.com/1056x594/n/bw/models/colors/ather-select-model-lunar-grey-1709794624354.png?q=80"><div class="card-content"><h3>ATHER 450X</h3><p>₹600/day</p><button class="btn" onclick="openForm('Ola S1')">Book Now</button></div></div>
+            <div class="card"><img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/1/versions/--standard1722518263796.jpg?q=80"><div class="card-content"><h3>Vespa SXL 150</h3><p>₹700/day</p><button class="btn" onclick="openForm('Vespa')">Book Now</button></div></div>
+        </div>
+    </section>
+
+    <section id="cars">
+        <div class="cat-container"><h2 class="cat-title">Cars</h2></div>
+        <div class="cards">
+            <div class="card"><img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/159099/swift-exterior-left-front-three-quarter-28.jpeg?isig=0&q=80"><div class="card-content"><h3>Maruti Swift</h3><p>₹1,200/day</p><button class="btn" onclick="openForm('Maruti Swift')">Book Now</button></div></div>
+            <div class="card"><img src="https://stimg.cardekho.com/images/carexteriorimages/930x620/Toyota/Innova-Crysta/9608/1755846139274/front-left-side-47.jpg?tr=w-420"><div class="card-content"><h3>Innova Crysta</h3><p>₹2,500/day</p><button class="btn" onclick="openForm('Innova Crysta')">Book Now</button></div></div>
+            <div class="card"><img src="https://imgd-ct.aeplcdn.com/664x415/n/cw/ec/44709/fortuner-exterior-left-front-three-quarter-6.jpeg?isig=0&q=80"><div class="card-content"><h3>Toyota Fortuner</h3><p>₹4,000/day</p><button class="btn" onclick="openForm('Toyota Fortuner')">Book Now</button></div></div>
+            <div class="card"><img src="https://imgd-ct.aeplcdn.com/664x415/n/cw/ec/124839/thar-roxx-exterior-left-front-three-quarter-3.jpeg?isig=0&q=80"><div class="card-content"><h3>Mahindra Thar Rox</h3><p>₹3,000/day</p><button class="btn" onclick="openForm('Mahindra Thar')">Book Now</button></div></div>
+            <div class="card"><img src="https://www.jdmbuysell.com/wp-content/uploads/2020/03/Toyota-Supra-2-1.jpg"><div class="card-content"><h3>Toyota Supra</h3><p>₹1,800/day</p><button class="btn" onclick="openForm('Tata Nexon')">Book Now</button></div></div>
+        </div>
+    </section>
+
+    <section id="customer-portal" style="background: var(--beige);">
+        <div class="dashboard-container">
+            <h2 style="display:flex; align-items:center; gap:15px; color:var(--leather); border:none;"><span style="color:var(--burnt-red)">👤</span> Track Your Bookings</h2>
+            <p style="color:#666">Enter your full name to view your rental history.</p>
+            <div class="search-bar">
+                <input type="text" id="searchName" placeholder="Full name used during booking...">
+                <button class="search-btn" onclick="viewHistory()">Search Records</button>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Vehicle</th><th>Pickup Date</th><th>Status</th></tr>
+                </thead>
+                <tbody id="historyData">
+                    <tr><td colspan="3" style="text-align:center; padding:40px; color:#999;">No records to display.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="admin-panel" class="hidden">
+        <div class="admin-panel">
+            <h2 style="color:var(--burnt-red); border:none;">🛠 Developer Management</h2>
+            <p style="color:#888; margin-bottom: 20px;">Manage the local database and export records.</p>
+            <div style="margin:30px 0;">
+                <button class="btn-csv" onclick="exportCSV()">Download CSV</button>
+                <button class="btn-wipe" onclick="clearData()">Wipe Database</button>
+                <span style="margin-left:25px; color:#666">Import CSV: <input type="file" style="color:#888" onchange="importCSV(event)"></span>
+            </div>
+            <table style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Vehicle</th>
+                        <th>City</th>
+                        <th>Pickup</th>
+                        <th>Drop</th>
+                        <th>Duration</th>
+                        <th>ID</th>
+                    </tr>
+                </thead>
+                <tbody id="adminData"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <div class="social-section">
+            <h2>Let's get social</h2>
+            <div class="social-icons">
+                <img src="https://cdn-icons-png.flaticon.com/512/20/20061.png" alt="FB">
+                <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X">
+                <img src="https://cdn-icons-png.flaticon.com/512/1384/1384063.png" alt="IG">
+                <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YT">
+                <img src="https://cdn-icons-png.flaticon.com/512/1384/1384014.png" alt="IN">
+            </div>
+        </div>
+        <div class="footer-policies">
+            <a href="#">Privacy Policy</a> • <a href="#">Terms of Use</a> • <a href="#">Warranty Policy</a> • <a href="#">D2D Paid Repair Service Policy</a>
+        </div>
+        <div class="copyright">
+            © 2025 Imagine Marketing Limited. All Rights Reserved.
+        </div>
+        <div class="footer-contact">
+            For queries contact us: Manager, Imagine Marketing Limited Unit no. 204 & 205, 2nd floor, D-wing & E-wing, Corporate Avenue, Andheri Ghatkopar Link Road, Mumbai, Maharashtra-400093, India
+        </div>
+    </footer>
+</div>
+
+<div id="popup" class="popup">
+    <div class="popup-content">
+        <span class="close-icon" onclick="document.getElementById('popup').style.display='none'">&times;</span>
+        <h3 id="vName">Vehicle Name</h3>
+        
+        <label class="form-label">Choose your city</label>
+        <select id="bookingCity" class="city-select">
+            <option value="Bangalore">Bangalore</option>
+            <option value="Mumbai">Mumbai</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Chennai">Chennai</option>
+            <option value="Hyderabad">Hyderabad</option>
+        </select>
+
+        <div class="date-grid">
+            <div class="date-input-group">
+                <label>Pick up date</label>
+                <input type="date" id="pickupDate" class="date-input" onchange="calcDuration()">
+            </div>
+            <div class="date-input-group">
+                <label>Pick up time</label>
+                <input type="time" id="pickupTime" class="date-input" value="09:00" onchange="calcDuration()">
+            </div>
+        </div>
+
+        <div class="date-grid">
+            <div class="date-input-group">
+                <label>Drop date</label>
+                <input type="date" id="dropDate" class="date-input" onchange="calcDuration()">
+            </div>
+            <div class="date-input-group">
+                <label>Drop time</label>
+                <input type="time" id="dropTime" class="date-input" value="21:00" onchange="calcDuration()">
+            </div>
+        </div>
+
+        <div id="durationText" class="duration-box">Duration: Select dates</div>
+
+        <button class="confirm-btn" onclick="saveBooking()">Look for pricing</button>
+    </div>
+</div>
+
+<script>
+    let activeUser = "";
+    let curVehicle = "";
+
+    function handleLogin() {
+        let val = document.getElementById('loginInput').value.trim();
+        if(!val) return alert("Please enter credentials");
+        
+        if(val === "admin789") {
+            activeUser = "Developer";
+            document.getElementById('dev-nav-link').classList.remove('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+        } else {
+            activeUser = val;
+        }
+
+        document.getElementById('auth-overlay').classList.add('hidden');
+        document.getElementById('main-content').classList.remove('hidden');
+        renderAdmin();
+    }
+
+    function openForm(v) {
+        curVehicle = v;
+        document.getElementById('vName').innerText = v;
+        document.getElementById('popup').style.display = "block";
+        
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('pickupDate').value = today;
+        document.getElementById('dropDate').value = today;
+        calcDuration();
+    }
+
+    function calcDuration() {
+        let pDate = document.getElementById('pickupDate').value;
+        let pTime = document.getElementById('pickupTime').value;
+        let dDate = document.getElementById('dropDate').value;
+        let dTime = document.getElementById('dropTime').value;
+
+        if(pDate && dDate && pTime && dTime) {
+            let start = new Date(`${pDate}T${pTime}`);
+            let end = new Date(`${dDate}T${dTime}`);
+            let diff = end - start;
+
+            if(diff <= 0) {
+                document.getElementById('durationText').innerText = "Invalid Selection";
+                document.getElementById('durationText').style.borderColor = "red";
+                return;
+            }
+
+            let hrs = Math.floor(diff / (1000 * 60 * 60));
+            let days = Math.floor(hrs / 24);
+            let remHrs = hrs % 24;
+            
+            let display = "";
+            if(days > 0) display += `${days} Days `;
+            if(remHrs > 0 || days === 0) display += `${remHrs} Hrs`;
+
+            document.getElementById('durationText').innerText = `Duration: ${display}`;
+            document.getElementById('durationText').style.borderColor = "#5a1010";
+        }
+    }
+
+    function saveBooking() {
+        let city = document.getElementById('bookingCity').value;
+        let pDate = document.getElementById('pickupDate').value;
+        let pTime = document.getElementById('pickupTime').value;
+        let dDate = document.getElementById('dropDate').value;
+        let dTime = document.getElementById('dropTime').value;
+        let durText = document.getElementById('durationText').innerText.replace("Duration: ", "");
+
+        if(!pDate || !dDate) return alert("Select valid dates");
+        if(new Date(`${dDate}T${dTime}`) <= new Date(`${pDate}T${pTime}`)) return alert("Drop time must be after pickup time!");
+
+        let db = JSON.parse(localStorage.getItem('rentals') || "[]");
+        db.push({
+            id: "BK-" + Math.floor(Math.random()*90000),
+            name: activeUser,
+            vehicle: curVehicle,
+            date: pDate, 
+            details: { city, pDate, pTime, dDate, dTime, duration: durText } 
+        });
+        localStorage.setItem('rentals', JSON.stringify(db));
+        alert("Booking Confirmed!");
+        document.getElementById('popup').style.display = "none";
+        renderAdmin();
+    }
+
+    // --- SEARCH RECORD FIX ---
+    function viewHistory() {
+        let inputVal = document.getElementById('searchName').value.trim();
+        
+        if(!inputVal) {
+            alert("Please enter a name to search.");
+            return;
+        }
+
+        let name = inputVal.toLowerCase();
+        let db = JSON.parse(localStorage.getItem('rentals') || "[]");
+        
+        // Safety check to prevent crashing on old data with no name
+        let filtered = db.filter(x => (x.name && x.name.toLowerCase() === name));
+        
+        let html = "";
+        if(filtered.length > 0) {
+            filtered.forEach(x => {
+                // Prefer detailed pickup date from new structure
+                let displayDate = (x.details && x.details.pDate) ? x.details.pDate : x.date;
+                let vehicleName = x.vehicle || "Unknown Vehicle";
+                
+                html += `<tr>
+                    <td style='padding:15px 0; color:#333; font-weight:bold;'>${vehicleName}</td>
+                    <td>${displayDate}</td>
+                    <td style='color:var(--burnt-red); font-weight:bold;'>Confirmed</td>
+                </tr>`;
+            });
+        } else {
+            html = "<tr><td colspan='3' style='text-align:center; padding:40px; color:#999;'>No bookings found for '" + inputVal + "'.</td></tr>";
+        }
+        document.getElementById('historyData').innerHTML = html;
+    }
+
+    function renderAdmin() {
+        let db = JSON.parse(localStorage.getItem('rentals') || "[]");
+        let html = "";
+        db.slice().reverse().forEach(x => {
+            let det = x.details || {};
+            html += `<tr>
+                        <td><b>${x.name}</b></td>
+                        <td>${x.vehicle}</td>
+                        <td>${det.city || '-'}</td>
+                        <td>${det.pDate || x.date} ${det.pTime || ''}</td>
+                        <td>${det.dDate || '-'} ${det.dTime || ''}</td>
+                        <td>${det.duration || '-'}</td>
+                        <td>${x.id}</td>
+                    </tr>`;
+        });
+        document.getElementById('adminData').innerHTML = html;
+    }
+
+    function exportCSV() {
+        let db = JSON.parse(localStorage.getItem('rentals') || "[]");
+        let csv = "Name,Vehicle,City,Pickup,Drop,Duration,ID\n";
+        db.forEach(x => {
+            let det = x.details || {};
+            csv += `${x.name},${x.vehicle},${det.city||''},${det.pDate||x.date} ${det.pTime||''},${det.dDate||''} ${det.dTime||''},${det.duration||''},${x.id}\n`;
+        });
+        let blob = new Blob([csv], {type:'text/csv'});
+        let link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'rentals.csv';
+        link.click();
+    }
+
+    function clearData() {
+        if(confirm("Wipe all data?")) {
+            localStorage.removeItem('rentals');
+            renderAdmin();
+        }
+    }
+
+    function importCSV(event) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            let lines = e.target.result.split("\n");
+            let db = [];
+            for(let i = 1; i < lines.length; i++) {
+                if(!lines[i].trim()) continue;
+                let parts = lines[i].split(",");
+                if(parts.length > 2) {
+                     db.push({
+                        name: parts[0],
+                        vehicle: parts[1],
+                        date: new Date().toISOString().split('T')[0],
+                        id: parts[parts.length-1],
+                        details: { city: "Imported" } 
+                    });
+                }
+            }
+            localStorage.setItem('rentals', JSON.stringify(db));
+            renderAdmin();
+        };
+        reader.readAsText(event.target.files[0]);
+    }
+</script>
+</body>
+</html>.....updated business website...
